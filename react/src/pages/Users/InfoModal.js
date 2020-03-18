@@ -35,7 +35,7 @@ class InfoModal extends Component {
                     <Row gutter={12}>
                         <Col span={12}>
                             <Form.Item label="用户名">
-                                {getFieldDecorator('username', {})(<Input />)}
+                                {getFieldDecorator('user', {})(<Input />)}
                             </Form.Item>
                         </Col>
                         <Col span={12}>

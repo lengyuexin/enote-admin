@@ -1,5 +1,5 @@
 import React from 'react'
-import { Tabs, Carousel, Layout, Icon } from 'antd'
+import { Tabs, Carousel, Layout,  } from 'antd'
 import './style.less'
 
 const Footer = Layout.Footer
@@ -10,7 +10,7 @@ const imgs = [
     `${process.env.REACT_APP_BASE_URL}/public/images/bg3.jpg`,
 ]
 
-class MyContent extends React.Component {
+class MyContent extends React.PureComponent {
     /**
      *  标签页的改变触发的函数
      */
@@ -63,17 +63,17 @@ class MyContent extends React.Component {
                                         {item.content}
                                     </div>
                                     <Footer style={{ textAlign: 'center', background: '#fff' }}>
-                                        React-Admin ©{new Date().getFullYear()} Created by 137596665@qq.com <a target='_blank' href='https://github.com/zhangZhiHao1996/admin' rel="noopener noreferrer"><Icon type="github" /></a>
+                                        Enote-Admin ©{new Date().getFullYear()} Created by GaoQian 
                                     </Footer>
                                 </TabPane>))
                             }
                         </Tabs>
                     ) : (
-                            <div className='bg-box'>
+                            <div className='bg-box' >
                                 <Carousel className='bg-size' autoplay autoplaySpeed={5000}>
                                     {imgs.map(item => (
-                                        <div className='bg-size' key={item}>
-                                            <img src={item} alt="" style={{ width: '100%', height: '100%' }} />
+                                        <div className='bg-size' key={item} >
+                                            <img src={item} alt={item} />
                                         </div>
                                     ))}
                                 </Carousel>

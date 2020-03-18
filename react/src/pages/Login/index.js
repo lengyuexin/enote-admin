@@ -7,7 +7,7 @@ import { preloadingImages } from '../../utils/util'
 //动态导入登录组件-注册组件-背景
 const LoginForm = LoadableComponent(import('./LoginForm'))
 const RegisterForm = LoadableComponent(import('./RegisterForm'))
-const Background = LoadableComponent(import('../../components/Background'))
+const Background = LoadableComponent(import('../../components/Background.js'))
 
 //获取node服务端开放的静态资源
 const imgs = [
@@ -20,7 +20,7 @@ const imgs = [
 const bgImgUrl = `${process.env.REACT_APP_BASE_URL}/public/images/login_bg1.jpg`
 
 
-function Login() {
+function Login({ history }) {
 
     //控制当前展示的是登录框还是注册框
     const [curPage, setCurPage] = useState("login")
@@ -30,14 +30,14 @@ function Login() {
         // 当用户登陆后再通过浏览器的后退按钮回到登录页时，再点击前进按钮可以直接回到首页
         if (!!isAuthenticated()) {
             //前进一个页面
-            this.props.history.go(1)   //不然他后退或者后退了直接登出
+            history.go(1)   //不然他后退或者后退了直接登出
             // logout()
         }
 
         //图片预加载
         preloadingImages(imgs)
 
-    }, [])
+    }, [history])
 
 
     // 切换登录和注册的面板
@@ -51,10 +51,10 @@ function Login() {
         <Background url={bgImgUrl}>
             <div className="login-container">
                 <div className={`box ${curPage === 'login' ? 'active' : ''}`}>
-                    <LoginForm toggleShow={handleToggle} />
+                    <LoginForm togglePage={handleToggle} />
                 </div>
                 <div className={`box ${curPage === 'register' ? 'active' : ''}`}>
-                    <RegisterForm toggleShow={handleToggle} />
+                    <RegisterForm togglePage={handleToggle} />
                 </div>
             </div>
         </Background>

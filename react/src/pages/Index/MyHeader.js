@@ -1,12 +1,12 @@
 import React from 'react'
 import screenfull from 'screenfull'
 import { Icon, message, Menu, Avatar } from 'antd'
-import ColorPicker from '@/components/ColorPicker/index'
-import { logout } from '@/utils/session'
+import ColorPicker from '../../components/ColorPicker.js'
+import { logout } from '../../utils/session'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
-import LoadableComponent from '@/utils/LoadableComponent'
-import MyIcon from '../../components/MyIcon'
+import LoadableComponent from '../../utils/LoadableComponent'
+import MyIcon from '../../components/MyIcon.js'
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
@@ -14,11 +14,9 @@ const MenuItemGroup = Menu.ItemGroup;
 const EditInfoModal = LoadableComponent(import('./EditInfoModal'))
 const EditPasswordModal = LoadableComponent(import('./EditPasswordModal'))
 
-const store = connect(
-    (state) => ({ user: state.user })
-)
 
-@withRouter @store
+
+@withRouter
 class MyHeader extends React.Component {
     constructor(props) {
         super(props);
@@ -34,6 +32,8 @@ class MyHeader extends React.Component {
             infoVisible: false,     //控制修改用户信息的模态框
             passwordVisible: false   //控制修改密码的模态框
         }
+
+       
     }
     /**
      * 切换侧边栏的折叠和展开
@@ -109,26 +109,26 @@ class MyHeader extends React.Component {
     render() {
         const { isFullscreen, color, infoVisible, passwordVisible } = this.state
         const { user, theme } = this.props
+
+
+
         return (
             <div style={{ background: '#fff', padding: '0 16px' }}>
-                <Icon
-                    style={{ fontSize: 18 }}
-                    type={this.props.collapsed ? 'menu-unfold' : 'menu-fold'}
-                    onClick={this.toggleCollapsed}
-                />
+                <Icon style={{ fontSize: 18, visibility: "hidden" }} type="step-forward" />
+
+
                 <div style={styles.headerRight}>
                     <div style={styles.headerItem}>
                         <ColorPicker color={color} onChange={this.changeColor} />
                     </div>
                     <div style={styles.headerItem}>
-                        <MyIcon type={theme === 'dark' ? 'icon-yueliang1' : 'icon-taiyang'} style={{ fontSize: 24 }} onClick={this.changeTheme}/>
-                        {/* <img width={24} src={require(`../../assets/images/${theme}.svg`)} alt='' onClick={this.changeTheme} /> */}
+                        <MyIcon type={theme === 'dark' ? 'icon-yueliang1' : 'icon-taiyang'} style={{ fontSize: 24 }} onClick={this.changeTheme} />
                     </div>
                     <div style={styles.headerItem}>
                         <Menu mode="horizontal" selectable={false}>
-                            <SubMenu title={<div style={styles.avatarBox}><Avatar size='small' src={user.avatar} />&nbsp;<span>{user.username}</span></div>}>
+                            <SubMenu title={<div style={styles.avatarBox}><Avatar size='small' src={user.avatar} />&nbsp;<span>{user.name}</span></div>}>
                                 <MenuItemGroup title="用户中心">
-                                    <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />编辑个人信息</Menu.Item>
+                                    <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />更换头像</Menu.Item>
                                     <Menu.Item key={77} onClick={() => this.togglePasswordVisible(true)}><Icon type="edit" />修改密码</Menu.Item>
                                     <Menu.Item key={2} onClick={this.onLogout}><Icon type="logout" />退出登录</Menu.Item>
                                 </MenuItemGroup>
@@ -165,4 +165,16 @@ const styles = {
     }
 }
 
-export default MyHeader
+
+
+//从全局state中获取数据
+const mapStateToProps = (state) => {
+   
+    return {
+        user: state.user
+    }
+
+}
+
+export default connect(mapStateToProps,null)(MyHeader)
+

@@ -21,7 +21,7 @@ class CreateUserModal extends Component {
         //加密密码
         const ciphertext = encrypt(values.password)
         const res = await post('/user/register', {
-            username: values.username,
+            name: values.username,
             password: ciphertext,
         })
         if (res.status === 0) {
@@ -52,7 +52,7 @@ class CreateUserModal extends Component {
                             rules: [
                                 { required: true, message: '用户名不能为空' },
                                 { pattern: /^[^\s']+$/, message: '不能输入特殊字符' },
-                                { min: 3, message: '用户名至少为3位' }
+                                { min: 1, message: '用户名至少为1位' }
                             ]
                         })(
                             <Input
@@ -67,7 +67,7 @@ class CreateUserModal extends Component {
                             rules: [
                                 { required: true, message: '密码不能为空' },
                                 { pattern: '^[^ ]+$', message: '密码不能有空格' },
-                                { min: 3, message: '密码至少为3位' },
+                                { min: 8, message: '密码至少为8位' },
                             ]
                         })(
                             <Input
@@ -99,6 +99,23 @@ class CreateUserModal extends Component {
                                 type={'password'} />
                         )}
                     </Form.Item>
+
+
+                    <Form.Item label={'手机号'}>
+                        {getFieldDecorator('phone', {
+                            validateFirst: true,
+                            rules: [
+                                { required: true, message: '手机号不能为空' },
+                                { pattern: /^1[3456789]\d{9}$/, message: '不能输入特殊字符' },
+                                { min: 11, message: '手机号必须11位' }
+                            ]
+                        })(
+                            <Input
+                                maxLength={11}
+                                placeholder='请输入手机号' />
+                        )}
+                    </Form.Item>
+
                 </Form>
             </Modal>
         );

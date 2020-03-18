@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Card} from 'antd'
-import Typing from '../../components/Typing/index'
+import Typing from '../components/Typing.js'
 
 class About extends Component {
     state = {  }

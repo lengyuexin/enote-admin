@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-class PromptBox extends React.Component {
+class PromptBox extends React.PureComponent {
     static propTypes = {
         info: PropTypes.string
     }

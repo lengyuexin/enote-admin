@@ -1,6 +1,6 @@
-const FRONT_SECRETKEY = 'front_666666'
-const BACKEND_SECRETKEY = 'backend_666666'
-const TOKEN_SECRETKEY = 'token_666666'
+const FRONT_SECRETKEY = 'front__enote'
+const BACKEND_SECRETKEY = 'backend__enote'
+const TOKEN_SECRETKEY = 'token__enote'
 
 module.exports = {
     FRONT_SECRETKEY,

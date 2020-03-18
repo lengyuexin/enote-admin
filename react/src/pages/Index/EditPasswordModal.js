@@ -12,7 +12,7 @@ const form = Form.create({
     mapPropsToFields(props) {
         const user = props.user
         return createFormField({
-            username: user.username
+            name: user.name
         })
     }
 })
@@ -93,7 +93,7 @@ class EditPasswordModal extends React.Component {
                             rules: [
                                 { required: true, message: '密码不能为空' },
                                 { pattern: '^[^ ]+$', message: '密码不能有空格' },
-                                { min: 3, message: '密码至少为3位' },
+                                { min: 8, message: '密码至少为8位' },
                             ]
                         })(
                             <Input

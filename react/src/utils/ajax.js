@@ -53,15 +53,16 @@ export async function get(url, param) {
             withCredentials: true       //跨域
         },
     })
-    const reslut = await response.json()
+    const result = await response.json()
+   
     if (!response.ok) {
         if(response.status === 401){
             logout()
             history.push('/login')
         }
-        message.error(reslut.message || '网络错误')
+        message.error(result.message || '网络错误')
     }
-    return reslut
+    return result
    
 }
 

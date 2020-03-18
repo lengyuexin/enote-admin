@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
 import { Table, Card, Form, Input, Button, DatePicker, message, Icon, Row, Col, Divider, Modal, Popconfirm, notification } from 'antd'
 import { json } from '../../utils/ajax'
 import moment from 'moment'
@@ -14,7 +14,7 @@ const store = connect(
 
 
 @withRouter @store @Form.create()
-class Users extends Component {
+class Users extends PureComponent {
     state = {
         users: [],    //用户列表
         usersLoading: false,//获取用户loading
@@ -50,16 +50,10 @@ class Users extends Component {
         })
         const res = await json.get('/user/getUsers', {
             current: page - 1,
-            username: fields.username || '',   //koa会把参数转换为字符串，undefined也会
-            startTime: fields.startTime ? fields.startTime.valueOf() : '',
-            endTime: fields.endTime ? fields.endTime.valueOf() : ''
+            name: fields.name || '',   //koa会把参数转换为字符串，undefined也会
+
         })
-        if (res.status !== 0) {
-            this.setState({
-                usersLoading: false,
-            })
-            return
-        }
+
         this.setState({
             usersLoading: false,
             users: res.data.list,
@@ -101,17 +95,12 @@ class Users extends Component {
      */
     showInfoModal = (record) => {
         const registrationAddress = record.registrationAddress ? JSON.parse(record.registrationAddress) : {}
-        const lastLoginAddress = record.lastLoginAddress ? JSON.parse(record.lastLoginAddress) : {}
+
         const userInfo = {
-            username: record.username,
-            gender: record.gender,
+            name: record.name,
             rIp: registrationAddress.ip,
-            rTime: record.registrationTime && moment(record.registrationTime).format('YYYY-MM-DD HH:mm:ss'),
-            rNation: registrationAddress.ad_info.nation,
-            rProvince: registrationAddress.ad_info.province,
-            rCity: `${registrationAddress.ad_info.city}（${registrationAddress.ad_info.district}）`,
-            lastLoginAddress: lastLoginAddress.ip && `${lastLoginAddress.ip}（${lastLoginAddress.ad_info.city}）`,
-            lastLoginTime: record.lastLoginTime && moment(record.lastLoginTime).format('YYYY-MM-DD HH:mm:ss')
+
+
         }
         this.setState({
             isShowInfoModal: true,
@@ -182,6 +171,8 @@ class Users extends Component {
     render() {
         const { getFieldDecorator } = this.props.form
         const { users, usersLoading, pagination, userInfo, isShowInfoModal, selectedRowKeys, isShowCreateModal } = this.state
+       
+
         const columns = [
             {
                 title: '序号',
@@ -197,44 +188,15 @@ class Users extends Component {
             },
             {
                 title: '用户名',
-                dataIndex: 'username',
+                dataIndex: 'name',
                 align: 'center'
             },
+
             {
-                title: '注册地址',
-                dataIndex: 'registrationAddress',
+                title: '手机号',
+                dataIndex: 'phone',
                 align: 'center',
-                render: (text) => {
-                    const info = text && JSON.parse(text)
-                    if (info) {
-                        return `${info.ip}（${info.ad_info.city}）`
-                    }
-                }
-            },
-            {
-                title: '注册时间',
-                dataIndex: 'registrationTime',
-                align: 'center',
-                render: (text) => text && moment(text).format('YYYY-MM-DD HH:mm:ss'),
-                sorter: (a, b) => a.registrationTime - b.registrationTime
-            },
-            {
-                title: '上一次登陆地址',
-                dataIndex: 'lastLoginAddress',
-                align: 'center',
-                render: (text) => {
-                    const info = text && JSON.parse(text)
-                    if (info) {
-                        return `${info.ip}（${info.ad_info.city}）`
-                    }
-                }
-            },
-            {
-                title: '上一次登陆时间',
-                dataIndex: 'lastLoginTime',
-                align: 'center',
-                render: (text) => text && moment(text).format('YYYY-MM-DD HH:mm:ss'),
-                sorter: (a, b) => a.lastLoginTime - b.lastLoginTime
+
             },
             {
                 title: '身份',
@@ -262,7 +224,7 @@ class Users extends Component {
                     <div style={{ textAlign: 'left' }}>
                         <span className='my-a' onClick={() => this.showInfoModal(record)}><Icon type="eye" /> 查看</span>
                         {
-                            this.props.user.username === record.username &&
+                            this.props.user.name === record.name &&
                             <Popconfirm title='您确定删除当前用户吗？' onConfirm={() => this.singleDelete(record)}>
                                 <span className='my-a'><Divider type='vertical' /><Icon type='delete' /> 删除</span>
                             </Popconfirm>
@@ -286,7 +248,7 @@ class Users extends Component {
                         <Row>
                             <Col span={6}>
                                 <Form.Item label="用户名">
-                                    {getFieldDecorator('username')(
+                                    {getFieldDecorator('name')(
                                         <Input
                                             onPressEnter={this.onSearch}
                                             style={{ width: 200 }}
@@ -295,20 +257,8 @@ class Users extends Component {
                                     )}
                                 </Form.Item>
                             </Col>
-                            <Col span={7}>
-                                <Form.Item label="注册开始时间">
-                                    {getFieldDecorator('startTime')(
-                                        <DatePicker style={{ width: 200 }} showTime />
-                                    )}
-                                </Form.Item>
-                            </Col>
-                            <Col span={7}>
-                                <Form.Item label="注册截止时间">
-                                    {getFieldDecorator('endTime')(
-                                        <DatePicker style={{ width: 200 }} showTime />
-                                    )}
-                                </Form.Item>
-                            </Col>
+
+
                             <Col span={4}>
                                 <Form.Item style={{ marginRight: 0, width: '100%' }} wrapperCol={{ span: 24 }}>
                                     <div style={{ textAlign: 'right' }}>
@@ -323,6 +273,7 @@ class Users extends Component {
                         <Button type='primary' icon='plus' onClick={() => this.toggleShowCreateModal(true)}>新增</Button>&emsp;
                         <Button type='danger' icon='delete' disabled={!selectedRowKeys.length} onClick={this.batchDelete}>批量删除</Button>
                     </div>
+
                     <Table
                         bordered
                         rowKey='id'

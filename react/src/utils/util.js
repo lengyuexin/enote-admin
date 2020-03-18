@@ -1,5 +1,4 @@
 import CryptoJS from 'crypto-js'
-import { SECRETKEY } from '../config/secret'
 import { Form } from 'antd'
 
 /**
@@ -58,17 +57,18 @@ export function randomNum(min, max) {
  * @param {*} str 
  */
 export function encrypt(str) {
-    return CryptoJS.AES.encrypt(JSON.stringify(str), SECRETKEY).toString();
+    const SECRETKEY = 'EnglishNoteAdmin';
+    const key = CryptoJS.enc.Utf8.parse(SECRETKEY);
+    const iv = CryptoJS.enc.Utf8.parse(SECRETKEY);
+    const srcs = CryptoJS.enc.Utf8.parse(str);
+    const encrypted = CryptoJS.AES.encrypt(srcs, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.ZeroPadding
+    });
+    return CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
 }
 
-/**
- * 解密函数
- * @param {*} str 
- */
-export function decrypt(str) {
-    const bytes = CryptoJS.AES.decrypt(str, SECRETKEY);
-    return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-}
 
 /**
  * 判断是否是对象
@@ -98,8 +98,8 @@ export function createFormField(obj) {
  * 将img标签转换为【图片】
  * @param {string} str 
  */
-export function replaceImg(str){
-    if(typeof str === 'string'){
+export function replaceImg(str) {
+    if (typeof str === 'string') {
         str = str.replace(/<img(.*?)>/g, "[图片]")
     }
     return str
@@ -111,10 +111,10 @@ export function replaceImg(str){
  * @constructor
  */
 export function preloadingImages(arr) {
-    if(Array.isArray(arr)){
-        arr.forEach(item=>{
+    if (Array.isArray(arr)) {
+        arr.forEach(item => {
             const img = new Image()
             img.src = item
-          })
+        })
     }
-  }
+}

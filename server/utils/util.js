@@ -1,12 +1,12 @@
 const CryptoJS = require('crypto-js')
 const crypto = require('crypto') //这是node自带的
-const {FRONT_SECRETKEY,BACKEND_SECRETKEY} = require('../config/secret')
+const { FRONT_SECRETKEY, BACKEND_SECRETKEY } = require('../config/secret')
 
 /**
  * 前端加密函数，加密同一个字符串生成的都不相同,加密/解密秘钥必须和前端的相同
  * @param {*} str 
  */
- function encrypt(str){
+function encrypt(str) {
     return CryptoJS.AES.encrypt(JSON.stringify(str), FRONT_SECRETKEY).toString();
 }
 
@@ -14,8 +14,8 @@ const {FRONT_SECRETKEY,BACKEND_SECRETKEY} = require('../config/secret')
  * 前端解密函数
  * @param {*} str 
  */
- function decrypt(str){
-    const bytes  = CryptoJS.AES.decrypt(str, FRONT_SECRETKEY);
+function decrypt(str) {
+    const bytes = CryptoJS.AES.decrypt(str, FRONT_SECRETKEY);
     return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 }
 
@@ -37,8 +37,33 @@ function genPassword(password) {
     return md5(str)
 }
 
+
+
+
+
+//请求成功时的响应
+function success(ctx, status = 200, message = '请求成功', data = '') {
+    ctx.status = status;
+    return ctx.body = {
+        message,
+        data
+    };
+}
+
+//请求失败时的响应
+function fail(ctx, status = 500, message = '请求失败', data = '') {
+    ctx.status = status;
+    return ctx.body = {
+        message,
+        data
+    };
+}
+
+
 module.exports = {
     encrypt,
     decrypt,
-    genPassword
+    genPassword,
+    success,
+    fail,
 }

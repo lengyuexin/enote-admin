@@ -1,20 +1,17 @@
 import React from 'react'
-import { Modal, Form, Upload, Icon, message, Input, Radio, DatePicker, Alert } from 'antd'
+import { Modal, Form, Upload, Icon, message } from 'antd'
 import { isAuthenticated, authenticateSuccess } from '../../utils/session'
 import moment from 'moment'
 import { json } from '../../utils/ajax'
-import { setUser, initWebSocket } from '../../store/actions'
+import { setUser, } from '../../store/actions'
 import { connect, } from 'react-redux'
-import { bindActionCreators } from 'redux'
+
 import { createFormField } from '../../utils/util'
 
 
-const RadioGroup = Radio.Group;
 
-const store = connect(
-    (state) => ({ user: state.user, websocket: state.websocket }),
-    (dispatch) => bindActionCreators({ setUser, initWebSocket }, dispatch)
-)
+
+
 const form = Form.create({
     /**
      * 表单回显
@@ -29,7 +26,7 @@ const form = Form.create({
     }
 })
 
-@store @form
+ @form
 class EditInfoModal extends React.Component {
     state = {
         uploading: false
@@ -61,22 +58,12 @@ class EditInfoModal extends React.Component {
         }
         const res = await json.post('/user/update', param)
         if (res.status === 0) {
-            //修改localStorage，为什么我们在redux中保存了用户信息还要在localStorage中保存？redux刷新就重置了，我们需要username重新去后台获取
-            localStorage.setItem('username', values.username)
+            //修改localStorage，为什么我们在redux中保存了用户信息还要在localStorage中保存？redux刷新就重置了，我们需要name重新去后台获取
+            localStorage.setItem('name', values.name)
             //修改cookie
             authenticateSuccess(res.data.token)
             //修改redux中的user信息
             this.props.setUser(res.data)
-            //修改websocket中的user信息
-            if (this.props.websocket.readyState !== 1) {
-                this.props.initWebSocket(res.data)
-            } else {
-                this.props.websocket.send(JSON.stringify({
-                    id: res.data.id,
-                    username: res.data.username,
-                    avatar: res.data.avatar
-                }))
-            }
             message.success('修改信息成功')
             this.handleCancel()
         }
@@ -113,6 +100,8 @@ class EditInfoModal extends React.Component {
             showUploadList: false,
             accept: "image/*",
             onChange: (info) => {
+
+               
                 if (info.file.status !== 'uploading') {
                     this.setState({
                         uploading: true
@@ -137,8 +126,8 @@ class EditInfoModal extends React.Component {
                 onOk={this.handleOk}
                 visible={visible}
                 centered
-                title="编辑个人信息">
-                <div style={{ height: '60vh', overflow: 'auto' }}>
+                title="头像更换">
+                <div style={{ height: '30vh', overflow: 'auto' }}>
                     <Form>
                         <Form.Item label={'头像'} {...formItemLayout}>
                             {getFieldDecorator('avatar', {
@@ -149,54 +138,6 @@ class EditInfoModal extends React.Component {
                                     {avatar ? <img src={avatar} alt="avatar" style={styles.avatar} /> : <Icon style={styles.icon} type={uploading ? 'loading' : 'plus'} />}
                                 </Upload>
                             )}
-                        </Form.Item>
-                        <Form.Item label={'用户名'} {...formItemLayout}>
-                            {getFieldDecorator('username', {
-                                validateFirst: true,
-                                rules: [
-                                    { required: true, message: '用户名不能为空' },
-                                    { pattern: /^[^\s']+$/, message: '不能输入特殊字符' },
-                                    { min: 3, message: '用户名至少为3位' }
-                                ]
-                            })(
-                                <Input placeholder="请输入用户名" />
-                            )}
-                        </Form.Item>
-                        <Form.Item label={'出生年月日'} {...formItemLayout}>
-                            {getFieldDecorator('birth', {
-                                // rules: [{ required: true, message: '请选择出生年月日' }],
-                            })(
-                                <DatePicker />
-                            )}
-                        </Form.Item>
-                        <Form.Item label={'电话'} {...formItemLayout}>
-                            {getFieldDecorator('phone', {
-                                // rules: [{ required: true, message: '请输入电话号码' }, { pattern: /^[0-9]*$/, message: '请输入正确的电话号码' }],
-                            })(
-                                <Input placeholder="请输入电话号码" />
-                            )}
-                        </Form.Item>
-                        <Form.Item label={'所在地'} {...formItemLayout}>
-                            {getFieldDecorator('location', {
-                                validateFirst: true,
-                                // rules: [{ required: true, message: '请输入目前所在地' }],
-                            })(
-                                <Input placeholder="请输入目前所在地" />
-                            )}
-                        </Form.Item>
-                        <Form.Item label={'性别'} {...formItemLayout}>
-                            {getFieldDecorator('gender', {
-                                initialValue: '男',
-                                // rules: [{ required: true, message: '请选择性别' }],
-                            })(
-                                <RadioGroup>
-                                    <Radio value={'男'}>男</Radio>
-                                    <Radio value={'女'}>女</Radio>
-                                </RadioGroup>
-                            )}
-                        </Form.Item>
-                        <Form.Item>
-                            <Alert message={"注：此信息仅为项目模拟数据，无其他用途"} type="info" />
                         </Form.Item>
                     </Form>
                 </div>
@@ -225,4 +166,28 @@ const styles = {
 }
 
 
-export default EditInfoModal
+
+
+
+
+//从全局state中获取数据
+const mapStateToProps = (state) => {
+    return {
+        user: state.user
+    }
+
+}
+
+//更改状态的调度方法
+const mapDispatchToProps = (dispatch) => {
+    return {
+        setUser(user) {
+            dispatch(setUser(user));
+        },
+    }
+
+}
+export default connect(mapStateToProps, mapDispatchToProps)(EditInfoModal);
+
+
+
