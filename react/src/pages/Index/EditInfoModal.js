@@ -1,35 +1,27 @@
 import React from 'react'
 import { Modal, Form, Upload, Icon, message } from 'antd'
-import { isAuthenticated, authenticateSuccess } from '../../utils/session'
-import moment from 'moment'
+import { isAuthenticated } from '../../utils/session'
 import { json } from '../../utils/ajax'
+import { createFormField } from '../../utils/util'
 import { setUser, } from '../../store/actions'
 import { connect, } from 'react-redux'
-
-import { createFormField } from '../../utils/util'
-
-
 
 
 
 const form = Form.create({
-    /**
-     * 表单回显
-     * @param {*} props 
-     */
-    mapPropsToFields(props) {
-        const user = props.user
+    mapPropsToFields({ user }) {
         return createFormField({
-            ...user,
-            birth: user.birth ? moment(user.birth) : null
+            'admin-edit-avatar': user.avatar
         })
     }
+
 })
 
- @form
+@form
 class EditInfoModal extends React.Component {
     state = {
-        uploading: false
+        uploading: false,
+
     }
     /**
      * 关闭模态框
@@ -49,41 +41,49 @@ class EditInfoModal extends React.Component {
         });
     }
     /**
-     * 更新用户信息
+     * 更新用户头像
      */
     onUpdate = async (values) => {
-        const param = {
-            ...values,
-            birth: values.birth && moment(values.birth).valueOf()
-        }
-        const res = await json.post('/user/update', param)
-        if (res.status === 0) {
-            //修改localStorage，为什么我们在redux中保存了用户信息还要在localStorage中保存？redux刷新就重置了，我们需要name重新去后台获取
-            localStorage.setItem('name', values.name)
-            //修改cookie
-            authenticateSuccess(res.data.token)
-            //修改redux中的user信息
-            this.props.setUser(res.data)
-            message.success('修改信息成功')
+
+        const avatarArr = values['admin-edit-avatar'].split("/");
+        const avatarName=avatarArr[avatarArr.length-1];
+        const avatarFolder=avatarArr[avatarArr.length-2];
+
+        const res = await json.post('/user/updateAvatar',
+
+            {
+                avatar: `/${avatarFolder}/${avatarName}`,
+                name: window.localStorage.getItem("name")
+            }
+
+        )
+
+        if (res.data) {
+            message.success("头像更新成功")
             this.handleCancel()
         }
+
+
+
     }
     /**
      * 转换上传组件表单的值
      */
     _normFile = (e) => {
-        if (e.file.response && e.file.response.data) {
-            return e.file.response.data.url
-        } else {
-            return ''
+
+        if (e && e.file && e.file.response) {
+            return e.file.response.data
         }
+
+        return ''
+
     }
     render() {
         const { uploading } = this.state
         const { visible } = this.props
         const { getFieldDecorator, getFieldValue } = this.props.form
 
-        const avatar = getFieldValue('avatar')
+        const avatar = getFieldValue('admin-edit-avatar')
 
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -91,17 +91,18 @@ class EditInfoModal extends React.Component {
         }
 
         const uploadProps = {
-            name: "avatar",
+            name: "admin-edit-avatar",
+            multiple: false,
             listType: "picture-card",
             headers: {
                 Authorization: `Bearer ${isAuthenticated()}`,
             },
-            action: `${process.env.REACT_APP_BASE_URL}/upload?isImg=1`,
+            action: `${process.env.REACT_APP_BASE_URL}/upload`,
             showUploadList: false,
             accept: "image/*",
             onChange: (info) => {
 
-               
+
                 if (info.file.status !== 'uploading') {
                     this.setState({
                         uploading: true
@@ -109,7 +110,7 @@ class EditInfoModal extends React.Component {
                 }
                 if (info.file.status === 'done') {
                     this.setState({
-                        uploading: false
+                        uploading: false,
                     })
                     message.success('上传头像成功')
                 } else if (info.file.status === 'error') {
@@ -127,15 +128,15 @@ class EditInfoModal extends React.Component {
                 visible={visible}
                 centered
                 title="头像更换">
-                <div style={{ height: '30vh', overflow: 'auto' }}>
+                <div style={{ height: '30vh', overflow: 'hidden' }}>
                     <Form>
                         <Form.Item label={'头像'} {...formItemLayout}>
-                            {getFieldDecorator('avatar', {
+                            {getFieldDecorator('admin-edit-avatar', {
                                 rules: [{ required: true, message: '请上传用户头像' }],
                                 getValueFromEvent: this._normFile,     //将上传的结果作为表单项的值（用normalize报错了，所以用的这个属性）
                             })(
-                                <Upload {...uploadProps} style={styles.avatarUploader}>
-                                    {avatar ? <img src={avatar} alt="avatar" style={styles.avatar} /> : <Icon style={styles.icon} type={uploading ? 'loading' : 'plus'} />}
+                                <Upload   {...uploadProps} style={styles.avatarUploader}>
+                                    {avatar ? <img src={`${process.env.REACT_APP_BASE_URL}${avatar}`} alt="avatar" style={styles.avatar} /> : <Icon style={styles.icon} type={uploading ? 'loading' : 'plus'} />}
                                 </Upload>
                             )}
                         </Form.Item>

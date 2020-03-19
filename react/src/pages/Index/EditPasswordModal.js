@@ -3,25 +3,32 @@ import { Modal, Input, Form, message } from 'antd'
 import { connect } from 'react-redux'
 import { createFormField, encrypt } from '../../utils/util'
 import { json } from '../../utils/ajax'
+import { logout } from '../../utils/session'
 
 const store = connect(
     (state) => ({ user: state.user }),
 )
 const form = Form.create({
     //表单回显
-    mapPropsToFields(props) {
-        const user = props.user
+    mapPropsToFields({ user }) {
+
         return createFormField({
-            name: user.name
+            'admin-edit-self-name': user.name,
         })
     }
 })
 
 @store @form
-class EditPasswordModal extends React.Component {
+class EditPasswordModal extends React.PureComponent {
+
+    state = {
+        loading: false//修改密码loading
+    }
+
     handleCancel = () => {
         this.props.form.resetFields()
-        this.props.toggleVisible(false)
+        this.props.toggleVisible(false);
+
     }
     /**
      * 模态框的确定按钮
@@ -37,22 +44,41 @@ class EditPasswordModal extends React.Component {
      * 提交修改密码
      */
     onSubmit = async (values) => {
-        //加密密码
-        const ciphertext = encrypt(values.oldPassword)
-        const res = await json.post('/user/login', {
-            username: values.username,
-            password: ciphertext
+
+        //如果正在修改，则return，防止重复操作
+        if (this.state.loading) {
+            return
+        }
+
+        //开始修改-开启加载动画
+        this.setState({
+            loading: true
         })
-        if (res.status === 0) {
-            const ciphertext2 = encrypt(values.password)
-            const res2 = await json.post('/user/update', {
-                username: values.username,
-                password: ciphertext2
-            })
-            if (res2.status === 0) {
-                message.success('修改密码成功')
-                this.handleCancel()
-            }
+
+        const hide = message.loading('密码修改中...', 0)
+
+
+        //请求密码修改接口
+        const res = await json.post('/user/updatePwd', {
+            name: values['admin-edit-self-name'],
+            password: encrypt(values['admin-edit-self-password'])
+        })
+        this.setState({
+            loading: false
+        })
+        hide()
+
+
+        if (res.data) {
+            message.success('修改成功,3s后重新登录');
+            this.handleCancel();
+
+            setTimeout(() => {
+                logout();
+                window.location.href = "/"
+            }, 3000)
+
+
         }
     }
 
@@ -73,22 +99,13 @@ class EditPasswordModal extends React.Component {
                 title="修改密码">
                 <Form>
                     <Form.Item label={'用户名'} {...formItemLayout}>
-                        {getFieldDecorator('username', {})(
+                        {getFieldDecorator('admin-edit-self-name', {})(
                             <Input disabled />
                         )}
                     </Form.Item>
-                    <Form.Item label={'旧密码'} {...formItemLayout}>
-                        {getFieldDecorator('oldPassword', {
-                            rules: [{ required: true, message: '请输入旧密码' }],
-                        })(
-                            <Input
-                                placeholder="请输入旧密码"
-                                autoComplete="new-password"
-                                type={'password'} />
-                        )}
-                    </Form.Item>
+
                     <Form.Item label={'新密码'} {...formItemLayout}>
-                        {getFieldDecorator('password', {
+                        {getFieldDecorator('admin-edit-self-password', {
                             validateFirst: true,
                             rules: [
                                 { required: true, message: '密码不能为空' },
@@ -103,13 +120,13 @@ class EditPasswordModal extends React.Component {
                         )}
                     </Form.Item>
                     <Form.Item label={'确认密码'} {...formItemLayout}>
-                        {getFieldDecorator('confirmPassword', {
+                        {getFieldDecorator('admin-edit-self-confirmPassword', {
                             validateFirst: true,
                             rules: [
                                 { required: true, message: '请确认密码' },
                                 {
                                     validator: (rule, value, callback) => {
-                                        if (value !== getFieldValue('password')) {
+                                        if (value !== getFieldValue('admin-edit-self-password')) {
                                             callback('两次输入不一致！')
                                         }
                                         callback()

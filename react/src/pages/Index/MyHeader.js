@@ -1,12 +1,13 @@
 import React from 'react'
 import screenfull from 'screenfull'
-import { Icon, message, Menu, Avatar } from 'antd'
+import { Icon, message, Menu, Avatar, Button } from 'antd'
 import ColorPicker from '../../components/ColorPicker.js'
 import { logout } from '../../utils/session'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
 import LoadableComponent from '../../utils/LoadableComponent'
 import MyIcon from '../../components/MyIcon.js'
+
 
 const SubMenu = Menu.SubMenu;
 const MenuItemGroup = Menu.ItemGroup;
@@ -19,7 +20,10 @@ const EditPasswordModal = LoadableComponent(import('./EditPasswordModal'))
 @withRouter
 class MyHeader extends React.Component {
     constructor(props) {
+        
+       
         super(props);
+      
         const userTheme = JSON.parse(localStorage.getItem('user-theme'))
         let color = '#13C2C2'
         if (userTheme) {
@@ -27,14 +31,32 @@ class MyHeader extends React.Component {
             color = userTheme['@primary-color']
         }
         this.state = {
+           
+            url: "",//bgmusic
             isFullscreen: false,    //控制页面全屏
             color: color,
             infoVisible: false,     //控制修改用户信息的模态框
             passwordVisible: false   //控制修改密码的模态框
         }
 
-       
     }
+
+    
+    componentDidMount() {
+
+
+        this.setState({
+            url: this.changeMusic()
+        })
+    }
+
+    changeMusic = () => {
+        const musicList = ['All the Places', 'Dark Side', 'Dream It Possible', 'I Need You', 'Miracle', 'Such a Fool']
+        const index = parseInt(Math.random() * 6)
+        return `https://lengyuexin.github.io/enote-song/music/${musicList[index]}.m4a`
+    }
+
+
     /**
      * 切换侧边栏的折叠和展开
      */
@@ -116,6 +138,23 @@ class MyHeader extends React.Component {
             <div style={{ background: '#fff', padding: '0 16px' }}>
                 <Icon style={{ fontSize: 18, visibility: "hidden" }} type="step-forward" />
 
+                <Button type="primary" onClick={() => {
+
+                    const dom=document.getElementById("enote-admin-play")
+
+                     dom.pause();
+                  
+                    this.setState({
+                        url: this.changeMusic()
+                    },()=>{
+                        dom.play();
+                    })
+
+                }}>更换背景音乐</Button>
+
+                <audio id='enote-admin-play' autoPlay loop  src={this.state.url}/>
+
+
 
                 <div style={styles.headerRight}>
                     <div style={styles.headerItem}>
@@ -126,7 +165,7 @@ class MyHeader extends React.Component {
                     </div>
                     <div style={styles.headerItem}>
                         <Menu mode="horizontal" selectable={false}>
-                            <SubMenu title={<div style={styles.avatarBox}><Avatar size='small' src={user.avatar} />&nbsp;<span>{user.name}</span></div>}>
+                            <SubMenu title={<div style={styles.avatarBox}><Avatar size='small' src={`${process.env.REACT_APP_BASE_URL}${user.avatar}`} />&nbsp;<span>{user.name}</span></div>}>
                                 <MenuItemGroup title="用户中心">
                                     <Menu.Item key={1} onClick={() => this.toggleInfoVisible(true)}><Icon type="user" />更换头像</Menu.Item>
                                     <Menu.Item key={77} onClick={() => this.togglePasswordVisible(true)}><Icon type="edit" />修改密码</Menu.Item>
@@ -169,12 +208,12 @@ const styles = {
 
 //从全局state中获取数据
 const mapStateToProps = (state) => {
-   
+
     return {
         user: state.user
     }
 
 }
 
-export default connect(mapStateToProps,null)(MyHeader)
+export default connect(mapStateToProps, null)(MyHeader)
 

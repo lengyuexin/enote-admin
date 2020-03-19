@@ -1,37 +1,54 @@
 const { exec } = require('../db/mysql')
 const axios = require('axios')
-const { decrypt, genPassword } = require('../utils/util')
+
 const jwt = require('jsonwebtoken');
 const { TOKEN_SECRETKEY } = require('../config/secret')
-const { SuccessModel, ErrorModel } = require('../model/resModel')
+
 
 
 
 /**
- * 注册用户--ok
+ * 注册用户
  * @param {*} name 
  * @param {*} password 
  */
-const register = async function (name, password) {
-    const sql = `insert into users (name, password,level) values ('${name}', '${password}', 'admin')`
+const register = async function (name, password, phone, level = 'admin') {
+    const sql = `insert into users (name, password,phone,level) values
+     ('${name}', '${password}','${phone}', '${level}')`
     const res = await exec(sql);
     const jsonData = JSON.parse(JSON.stringify(res))
     return !!jsonData.affectedRows
 }
 
 /**
- * 检查用户名是否存在--ok
+ * 检查用户名是否存在
  * @param {string} name 
  */
 const checkName = async function (name) {
-    const sql = `select count(id) from users where name='${name}' and level='admin' `
+    const sql = `select count(id) from users where name='${name}'  `
     const res = await exec(sql);
     const jsonData = JSON.parse(JSON.stringify(res));
     return !!jsonData[0]["count(id)"]
 }
 
+
 /**
- * 腾讯地图api获取ip地址--ok
+ * 检查手机号是否存在
+ * @param {string} phone 
+ */
+const checkPhone = async function (phone) {
+    const sql = `select count(id) from users where phone='${phone}' `
+    const res = await exec(sql);
+    const jsonData = JSON.parse(JSON.stringify(res));
+    return !!jsonData[0]["count(id)"]
+}
+
+
+
+
+
+/**
+ * 腾讯地图api获取ip地址
  */
 const getIpInfo = async function () {
 
@@ -47,7 +64,7 @@ const getIpInfo = async function () {
 
 
 /**
- * 登陆--ok
+ * 登陆
  * @param {*} name 
  * @param {*} password 
  */
@@ -56,7 +73,8 @@ const login = async function (name, password) {
     const isCheckPass = await checkName(name);
     if (!isCheckPass) return null;
 
-    const sql = `select count(id) from users where name='${name}' and password='${password}'`
+    const sql = `select count(id) from users 
+    where name='${name}' and password='${password}' and level='admin'`
     const res = await exec(sql);
     const jsonData = JSON.parse(JSON.stringify(res));
 
@@ -70,7 +88,7 @@ const login = async function (name, password) {
 }
 
 /**
- * 获取单个用户,可根据用户名查询单个用户--ok
+ * 获取单个用户,可根据用户名查询单个用户
  * @param {*} param 
  */
 const getUser = async (param) => {
@@ -84,7 +102,7 @@ const getUser = async (param) => {
 
 
 /**
- * 分页获取用户列表--todo
+ * 分页获取用户列表
  * @param {*} param 
  */
 const getUsers = async (param) => {
@@ -110,93 +128,57 @@ const getUsers = async (param) => {
 
 
 
+
+
 /**
- * 当更新用户名或用户头像时，更新其它表中和用户相关连的信息
- * @param {*} user 
+ * 更新用户其他信息
+ * @param {*} name 
+ * @param {*} phone 
+ * @param {*} sign 
  */
-const updateUserMessage = (user) => {
-    const sql = `update messages set userIsAdmin=${user.isAdmin},userName='${user.name}',userAvatar='${user.avatar}' where userId=${user.id}`
-    const sql2 = `update messages set targetUserIsAdmin=${user.isAdmin},targetUserName='${user.name}',targetUserAvatar='${user.avatar}' where targetUserId=${user.id}`
-    const sql3 = `update chats set name='${user.name}',userAvatar='${user.avatar}' where userId=${user.id}`
-    // 同步执行3个异步任务
-    Promise.all([exec(sql), exec(sql2), exec(sql3)]).then(([res, res2, res3]) => {
-        console.log(444, res)
-        console.log(555, res2)
-        console.log(666, res3)
-    })
+const updateUser = async (name, phone, sign) => {
+    const sql = `update users set name='${name}',phone='${phone}',sign='${sign}' where name='${name}'`
+    const res = JSON.parse(JSON.stringify(await exec(sql)))
+    return !!res.changedRows
+}
+/**
+ * 更新用户密码
+ * @param {*} name 
+ * @param {*} password 
+ */
+
+const updateUserPwd = async (name, password) => {
+    const sql = `update users set password='${password}' where name='${name}'`
+    const res = JSON.parse(JSON.stringify(await exec(sql)))
+    return !!res.changedRows
 }
 
 /**
- * 更新用户信息
- * @param {*} param 
+ * 更新用户头像
+ * @param {*} name 
+ * @param {*} avatar 
  */
-const updateUser = async (param, sessionId) => {
-    const loginName = jwt.verify(sessionId, TOKEN_SECRETKEY).name
-    if (param.name && loginName !== param.name) {
-        //如果修改了用户名还要检查用户名是否已经存在
-        const checkNameResult = await checkName(param.name)
-        if (checkNameResult.data.num) {
-            return new ErrorModel({
-                message: '用户名已存在',
-                httpCode: 400
-            })
-        }
-    }
-    let str = ''
-    for (let [key, value] of Object.entries(param)) {
-        if (value) {
-            if (key === 'password') {
-                //先解密前端加密的密码
-                const originalText = decrypt(value)
-                //然后再用另一种方式加密密码
-                const ciphertext = genPassword(originalText)
-                str += `,${key}='${ciphertext}'`
-            } else {
-                str += `,${key}='${value}'`
-            }
-        }
-    }
-    const sql = `update users set ${str.substring(1)} where name='${loginName}'`
-    const res = await exec(sql)
-    const res2 = await getUser({ name: param.name })
-    if (res2.status === 0) {
-        //更新用户的留言（头像、用户名）
-        updateUserMessage(res2.data)
-    }
-    return new SuccessModel({
-        data: {
-            ...res2.data,
-            token: jwt.sign({ name: param.name }, TOKEN_SECRETKEY, { expiresIn: '7d' })
-        },
-        message: '修改成功'
-    })
+
+const updateUserAvatar = async (name, avatar) => {
+    const sql = `update users set avatar='${avatar}' where name='${name}'`
+    const res = JSON.parse(JSON.stringify(await exec(sql)))
+    return !!res.changedRows
 }
 
-const deleteUsers = async (param) => {
-    const ids = param.ids
-    if (!Array.isArray(ids)) {
-        return new ErrorModel({
-            message: '参数异常',
-            httpCode: 400
-        })
-    }
+
+
+
+/**
+ * deleteUsers 根据传递的id删除用户/可单可多
+ * @param {*} ids 
+ */
+const deleteUsers = async (ids) => {
     const sql = `delete from users where id in (${ids.join(',')})`
     const res = await exec(sql)
-    return new SuccessModel({
-        message: `成功删除${res.affectedRows}条数据`
-    })
+    return !!res.affectedRows
 }
 
-/**
- * 获取所有用户
- */
-const getAllUsers = async () => {
-    const sql = `select id,name,avatar,isAdmin from users order by registrationTime desc`
-    const res = await exec(sql)
-    return new SuccessModel({
-        data: res
-    })
-}
+
 
 module.exports = {
     register,
@@ -207,5 +189,7 @@ module.exports = {
     getUser,
     updateUser,
     deleteUsers,
-    getAllUsers
+    checkPhone,
+    updateUserPwd,
+    updateUserAvatar,
 }

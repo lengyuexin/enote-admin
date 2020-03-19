@@ -47,6 +47,9 @@ class LoginForm extends React.Component {
         }
 
 
+        console.log(encrypt(values.password))
+
+
         const loginResult = await post('/user/login', {
             name: values.name,
             password: encrypt(values.password)
@@ -63,9 +66,11 @@ class LoginForm extends React.Component {
             return
         }
 
+
+
         window.localStorage.setItem('name', values.name)
-        authenticateSuccess(loginResult.data.token)
-        window.location.href='/'
+        authenticateSuccess(loginResult.data)
+        window.location.href = '/'
     }
 
 
@@ -130,7 +135,7 @@ class LoginForm extends React.Component {
 
                     <Form.Item
                         help={<Promptbox info={getFieldError('password') && getFieldError('password')[0]} />}
-                        style={{ marginBottom: 10 }}
+                        style={{ marginBottom: 60 }}
                         wrapperCol={{ span: 20, pull: focusItem === 1 ? 1 : 0 }}
                         labelCol={{ span: 3, pull: focusItem === 1 ? 1 : 0 }}
                         label={<span className='iconfont icon-suo1' style={{ opacity: focusItem === 1 ? 1 : 0.6 }} />}

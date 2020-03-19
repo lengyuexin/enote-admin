@@ -4,7 +4,7 @@ const {
 	getIpInfo, login,
 	getUsers, getUser,
 	updateUser, deleteUsers,
-	getAllUsers } = require('../controller/user')
+	checkPhone ,updateUserPwd,updateUserAvatar} = require('../controller/user')
 
 router.prefix('/user');
 
@@ -16,8 +16,8 @@ const { success, fail } = require("../utils/util")
 router.post('/register', async function (ctx) {
 
 	try {
-		const { name, password } = ctx.request.body
-		const res = await register(name, password, ctx);
+		const { name, password, phone } = ctx.request.body
+		const res = await register(name, password, phone, ctx);
 
 		if (res) {
 			success(ctx, 200, '请求成功', true)
@@ -65,6 +65,20 @@ router.get('/checkName', async function (ctx) {
 
 })
 
+//手机号校验
+router.get('/checkPhone', async function (ctx) {
+
+	try {
+		const { phone } = ctx.query
+		const isPass = await checkPhone(phone);
+		success(ctx, 200, "请求成功", isPass)
+
+	} catch (err) {
+		fail(ctx, 500, "请求失败" + err.message);
+	}
+
+})
+
 
 
 //获取ip详情
@@ -82,9 +96,9 @@ router.get('/getIpInfo', async function (ctx) {
 
 
 
-
+//获取全部用户数据
 router.get('/getUsers', async function (ctx) {
-	
+
 	try {
 		const res = await getUsers(ctx.query)
 		success(ctx, 200, '请求成功', res);
@@ -94,6 +108,7 @@ router.get('/getUsers', async function (ctx) {
 
 })
 
+//根据用户名查询用户
 router.get('/getUser', async function (ctx) {
 
 	try {
@@ -104,20 +119,49 @@ router.get('/getUser', async function (ctx) {
 	}
 })
 
-router.post('/update', async function (ctx, next) {
-	const sessionId = ctx.cookies.get('sessionId')
-	const res = await updateUser(ctx.request.body, sessionId)
 
+//更新用户-除密码外其他信息
+router.post('/update', async function (ctx) {
+	try {
+		const { name, phone, sign } = ctx.request.body
+		const res = await updateUser(name, phone, sign)
+		success(ctx, 200, '请求成功', res);
+	} catch (err) {
+		fail(ctx, 500, "请求失败" + err.message);
+	}
 })
 
-router.post('/delete', async function (ctx, next) {
-	const res = await deleteUsers(ctx.request.body)
-
+//更新用户密码
+router.post('/updatePwd', async function (ctx) {
+	try {
+		const { name, password } = ctx.request.body
+		const res = await updateUserPwd(name, password)
+		success(ctx, 200, '请求成功', res);
+	} catch (err) {
+		fail(ctx, 500, "请求失败" + err.message);
+	}
 })
 
-router.get('/getAllUsers', async function (ctx, next) {
-	const res = await getAllUsers()
+//更新用户头像
+router.post('/updateAvatar', async function (ctx) {
+	try {
+		const { name, avatar } = ctx.request.body
+		const res = await updateUserAvatar(name, avatar)
+		success(ctx, 200, '请求成功', res);
+	} catch (err) {
+		fail(ctx, 500, "请求失败" + err.message);
+	}
+})
 
+//删除用户
+router.post('/delete', async function (ctx) {
+	try {
+		const { ids } = ctx.request.body;
+		const res = await deleteUsers(ids)
+		success(ctx, 200, '请求成功', res);
+	} catch (err) {
+		fail(ctx, 500, "请求失败" + err.message);
+	}
 })
 
 module.exports = router

@@ -1,39 +1,30 @@
 const router = require('koa-router')()
 const uploadFile = require('../utils/upload')
 const path = require('path')
+const fs = require('fs')
+const { success, fail } = require('../utils/util')
 
-function handleRes(ctx, next, res) {
-	if (res.status === 0) {
-		ctx.body = res
-	} else {
-		ctx.status = res.httpCode
-		ctx.body = res
-		// ctx.message = res.message   //本来想直接设置fetch的statusText，但是加了这句话请求就出错
-	}
-}
 
-router.get('/', async (ctx, next) => {
-	await ctx.render('index.html')
-})
 
 //上传接口
-router.post('/upload', async (ctx, next) => {
-	const { isImg, fileType } = ctx.query
-	const serverFilePath = path.join(__dirname, '../public/upload-files')
-	const res = await uploadFile(ctx, {
-		fileType: fileType || 'myUpload', // common or album
-		path: serverFilePath,
-		isImg: !!isImg
-	})
-	handleRes(ctx, next, res)
-})
+router.post('/upload', async (ctx) => {
 
+	try {
 
-router.get('/json', async (ctx, next) => {
+		const uploadTargetPath = path.join(__dirname, '../public/upload-files')
 
-	ctx.body = {
-		title: 'koa2 json'
+		if (fs.existsSync(uploadTargetPath) === false) {
+			fs.mkdirSync(uploadTargetPath)
+		}
+		const res = await uploadFile(ctx, uploadTargetPath)
+		success(ctx, 200, '请求成功', res)
+
+	} catch (err) {
+		fail(ctx, 500, "上传失败", err.message);
 	}
+
+
 })
+
 
 module.exports = router

@@ -1,10 +1,8 @@
-import React, { Component, PureComponent } from 'react';
-import { Table, Card, Form, Input, Button, DatePicker, message, Icon, Row, Col, Divider, Modal, Popconfirm, notification } from 'antd'
+import React, { PureComponent } from 'react';
+import { Table, Card, Form, Input, Button, message, Icon, Row, Col, Divider, Modal, Popconfirm, } from 'antd'
 import { json } from '../../utils/ajax'
-import moment from 'moment'
 import InfoModal from './InfoModal'
 import { connect } from 'react-redux'
-import { logout } from '../../utils/session'
 import { withRouter } from 'react-router-dom'
 import CreateUserModal from './CreateUserModal'
 
@@ -27,7 +25,8 @@ class Users extends PureComponent {
         isShowInfoModal: false,
         userInfo: {},        //当前行的user信息
         selectedRowKeys: [],   //选择中的行keys
-        isShowCreateModal: false
+        isShowCreateModal: false,
+        delLoading: false//删除用户loading
 
     }
     componentDidMount() {
@@ -94,17 +93,9 @@ class Users extends PureComponent {
      * 打开用户信息模特框，并初始化用户信息回显
      */
     showInfoModal = (record) => {
-        const registrationAddress = record.registrationAddress ? JSON.parse(record.registrationAddress) : {}
-
-        const userInfo = {
-            name: record.name,
-            rIp: registrationAddress.ip,
-
-
-        }
         this.setState({
             isShowInfoModal: true,
-            userInfo: userInfo
+            userInfo: record
         })
     }
     /**
@@ -124,22 +115,26 @@ class Users extends PureComponent {
             title: '提示',
             content: '您确定批量删除勾选内容吗？',
             onOk: async () => {
-                if (!this.props.user.isAdmin) {
-                    message.warning('管理员才可批量删除')
+
+                //如果正在删除，则return，防止重复操作
+                if (this.state.delLoading) {
                     return
                 }
+
+                //开始删除-开启加载动画
+                this.setState({ delLoading: true })
+
+                const hide = message.loading('删除中...', 0)
                 const res = await json.post('/user/delete', {
                     ids: this.state.selectedRowKeys
                 })
-                if (res.status === 0) {
-                    notification.success({
-                        message: '删除成功',
-                        description: res.message,
-                    })
-                    this.setState({
-                        selectedRowKeys: []
-                    })
-                    this.getUsers()
+
+                this.setState({ delLoading: false })
+                hide();
+                if (res.data) {
+                    message.success('批量删除成功');
+                    this.setState({ selectedRowKeys: [] })//清空批量操作数据
+                    this.getUsers();//删除后重新加载数据
                 }
             }
         })
@@ -148,21 +143,35 @@ class Users extends PureComponent {
      * 单条删除
      */
     singleDelete = async (record) => {
+
+        //如果正在删除，则return，防止重复操作
+        if (this.state.delLoading) {
+            return
+        }
+
+        //开始删除-开启加载动画
+
+        this.setState({
+            delLoading: true
+        })
+        const hide = message.loading('删除中...', 0)
         const res = await json.post('/user/delete', {
             ids: [record.id]
         })
-        if (res.status === 0) {
-            notification.success({
-                message: '删除成功',
-                description: '3秒后自动退出登录',
-                duration: 3
-            })
-            logout()
-            setTimeout(() => {
-                this.props.history.push('/login')
-            }, 3000)
+
+        this.setState({
+            delLoading: false
+        })
+
+        hide()
+
+        if (res.data) {
+            message.success('删除成功');
+            this.getUsers();//删除后重新加载数据
         }
     }
+
+
     toggleShowCreateModal = (visible) => {
         this.setState({
             isShowCreateModal: visible
@@ -171,7 +180,7 @@ class Users extends PureComponent {
     render() {
         const { getFieldDecorator } = this.props.form
         const { users, usersLoading, pagination, userInfo, isShowInfoModal, selectedRowKeys, isShowCreateModal } = this.state
-       
+
 
         const columns = [
             {
@@ -191,7 +200,6 @@ class Users extends PureComponent {
                 dataIndex: 'name',
                 align: 'center'
             },
-
             {
                 title: '手机号',
                 dataIndex: 'phone',
@@ -199,36 +207,42 @@ class Users extends PureComponent {
 
             },
             {
+                title: '个性签名',
+                dataIndex: 'sign',
+                align: 'center'
+            },
+            {
                 title: '身份',
-                dataIndex: 'isAdmin',
+                dataIndex: 'level',
                 align: 'center',
-                render: (text) => text ? '管理员' : '游客',
+                render: (text) => text === "admin" ? '管理员' : '普通用户',
                 filterMultiple: false,
                 filters: [
                     {
-                        text: '游客',
-                        value: 0,
+                        text: 'writer',
+                        value: "writer",
                     },
                     {
-                        text: '管理员',
-                        value: 1,
+                        text: 'admin',
+                        value: "admin",
                     },
                 ],
-                onFilter: (text, record) => record.isAdmin === text,
+                onFilter: (value, record) => {
+                    return record.level === value
+                },
             },
             {
                 title: '操作',
                 key: 'active',
                 align: 'center',
+                width: "160px",
                 render: (text, record) => (
                     <div style={{ textAlign: 'left' }}>
-                        <span className='my-a' onClick={() => this.showInfoModal(record)}><Icon type="eye" /> 查看</span>
-                        {
-                            this.props.user.name === record.name &&
-                            <Popconfirm title='您确定删除当前用户吗？' onConfirm={() => this.singleDelete(record)}>
-                                <span className='my-a'><Divider type='vertical' /><Icon type='delete' /> 删除</span>
-                            </Popconfirm>
-                        }
+
+                        <span className='my-a' onClick={() => this.showInfoModal(record)}><Icon type="edit" /> 修改</span>
+                        <Popconfirm title='您确定删除当前用户吗？' onConfirm={() => this.singleDelete(record)}>
+                            <span className='my-a'><Divider type='vertical' /><Icon type='delete' /> 删除</span>
+                        </Popconfirm>
                     </div>
                 )
             },
@@ -285,8 +299,8 @@ class Users extends PureComponent {
                         onChange={this.onTableChange}
                     />
                 </Card>
-                <InfoModal visible={isShowInfoModal} userInfo={userInfo} onCancel={this.closeInfoModal} />
-                <CreateUserModal visible={isShowCreateModal} toggleVisible={this.toggleShowCreateModal} onRegister={this.getUsers} />
+                <InfoModal visible={isShowInfoModal} userInfo={userInfo} onCancel={this.closeInfoModal} reloadUsers={this.getUsers} />
+                <CreateUserModal visible={isShowCreateModal} toggleVisible={this.toggleShowCreateModal} reloadUsers={this.getUsers} />
             </div>
         );
     }
