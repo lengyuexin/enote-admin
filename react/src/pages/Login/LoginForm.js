@@ -47,7 +47,6 @@ class LoginForm extends React.Component {
         }
 
 
-        console.log(encrypt(values.password))
 
 
         const loginResult = await post('/user/login', {

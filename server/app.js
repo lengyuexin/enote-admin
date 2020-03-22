@@ -7,11 +7,12 @@ const bodyparser = require('koa-bodyparser')
 // const logger = require('koa-logger')
 const cors = require('koa2-cors');
 // const { TOKEN_SECRETKEY } = require('./config/secret')
-const jwt = require('koa-jwt')
+// const jwt = require('koa-jwt')
 const koaStatic = require('koa-static')
 
 const index = require('./routes/index')
 const user = require('./routes/user')
+const article = require('./routes/article')
 
 
 // error handler
@@ -41,14 +42,15 @@ app.use(async (ctx, next) => {
 app.use(cors({ credentials: true })); //前端调试时解决跨域，上线不用跨域
 
 //验证token登陆,unless是不需要验证的路由，每一项是匹配路由的正则
-const unPath = [/^\/$/, /public/, /checkName/, /register/, /getIpInfo/, /login/]
-const buildFiles = [/\.js$/, /\.css$/, /\.less$/, /\.ico/, /\.json$/, /static/]  //前端打包后不需要验证的资源
+//const unPath = [/^\/$/, /public/, /checkName/, /register/, /getIpInfo/, /login/]
+//const buildFiles = [/\.js$/, /\.css$/, /\.less$/, /\.ico/, /\.json$/, /static/]  //前端打包后不需要验证的资源
 //app.use(jwt({ secret: TOKEN_SECRETKEY, cookie: 'sessionId' }).unless({ path: unPath.concat(buildFiles) }));
 
 
 // routes
 app.use(index.routes(), index.allowedMethods())
 app.use(user.routes(), user.allowedMethods())
+app.use(article.routes(), article.allowedMethods())
 
 
 //一定要写在路由后面，写在前面就不会返回接口内容，而是直接返回首页了
