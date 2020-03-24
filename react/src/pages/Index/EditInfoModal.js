@@ -58,6 +58,8 @@ class EditInfoModal extends React.Component {
 
         )
 
+        
+
         if (res.data) {
             message.success("头像更新成功")
             this.handleCancel()

@@ -20,10 +20,10 @@ const EditPasswordModal = LoadableComponent(import('./EditPasswordModal'))
 @withRouter
 class MyHeader extends React.Component {
     constructor(props) {
-        
-       
+
+
         super(props);
-      
+
         const userTheme = JSON.parse(localStorage.getItem('user-theme'))
         let color = '#13C2C2'
         if (userTheme) {
@@ -31,7 +31,7 @@ class MyHeader extends React.Component {
             color = userTheme['@primary-color']
         }
         this.state = {
-           
+
             url: "",//bgmusic
             isFullscreen: false,    //控制页面全屏
             color: color,
@@ -41,7 +41,7 @@ class MyHeader extends React.Component {
 
     }
 
-    
+
     componentDidMount() {
 
 
@@ -140,19 +140,30 @@ class MyHeader extends React.Component {
 
                 <Button type="primary" onClick={() => {
 
-                    const dom=document.getElementById("enote-admin-play")
+                    const dom = document.getElementById("enote-admin-play")
 
-                     dom.pause();
-                  
+                    dom.pause();
+
                     this.setState({
                         url: this.changeMusic()
-                    },()=>{
+                    }, () => {
                         dom.play();
                     })
 
-                }}>更换背景音乐</Button>
+                }}>更换音乐</Button>
 
-                <audio id='enote-admin-play' autoPlay loop  src={this.state.url}/>
+                <Button style={{marginLeft:"16px"}} onClick={() => {
+
+                    const dom = document.getElementById("enote-admin-play")
+                    if (dom.paused) {
+                        dom.play();
+                    } else {
+                        dom.pause();
+                    }
+
+                }}>暂停/播放</Button>
+
+                <audio id='enote-admin-play' autoPlay loop src={this.state.url} />
 
 
 

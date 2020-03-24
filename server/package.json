@@ -23,6 +23,7 @@
     "koa-views": "^5.2.1",
     "koa2-cors": "^2.0.6",
     "mysql": "^2.17.1",
+    "node-xlsx": "^0.15.0",
     "nodejs-websocket": "^1.7.2",
     "pug": "^2.0.0-rc.1"
   },

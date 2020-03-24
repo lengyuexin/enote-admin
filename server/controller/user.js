@@ -11,6 +11,7 @@ const { TOKEN_SECRETKEY } = require('../config/secret')
  * 注册用户
  * @param {*} name 
  * @param {*} password 
+ * @param {*} phone 
  */
 const register = async function (name, password, phone, level = 'admin') {
     const sql = `insert into users (name, password,phone,level) values
