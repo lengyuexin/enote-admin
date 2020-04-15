@@ -16,8 +16,8 @@ const { success, fail } = require("../utils/util")
 router.post('/register', async function (ctx) {
 
 	try {
-		const { name, password, phone } = ctx.request.body
-		const res = await register(name, password, phone, ctx);
+		const { name, password, phone,level } = ctx.request.body
+		const res = await register(name, password, phone,level, ctx);
 
 		if (res) {
 			success(ctx, 200, '请求成功', true)

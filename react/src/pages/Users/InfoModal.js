@@ -86,28 +86,6 @@ class InfoModal extends PureComponent {
         }
     }
 
-    //用户名校验
-    checkName = debounce(async (value) => {
-
-        const checkResult = await get(`/user/checkName?name=${value}`)
-        if (checkResult.data) {
-            this.props.form.setFields({
-                'admin-edit-name': {
-                    value,
-                    errors: [new Error('用户名已存在')]
-                }
-            })
-            this.setState({ passName: false })
-
-        } else {
-            this.setState({ passName: true })
-        }
-
-    
-
-
-
-    })
 
     //手机号校验
     checkPhone = debounce(async (value) => {
@@ -165,16 +143,8 @@ class InfoModal extends PureComponent {
                     <Form.Item label={'用户名'}>
                         {getFieldDecorator('admin-edit-name', {
                             validateFirst: true,
-                            rules: [
-                                { required: true, message: '用户名不能为空' },
-                                { pattern: /^[^\s']+$/, message: '不能输入特殊字符' },
-                                { min: 1, message: '用户名至少为1位' }
-                            ]
                         })(
-                            <Input
-                                maxLength={16}
-                                onChange={(e) => this.checkName(e.target.value)}
-                                placeholder='请输入用户名' />
+                            <Input disabled />
                         )}
                     </Form.Item>
 

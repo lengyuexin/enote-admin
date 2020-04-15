@@ -53,7 +53,7 @@ class MyHeader extends React.Component {
     changeMusic = () => {
         const musicList = ['All the Places', 'Dark Side', 'Dream It Possible', 'I Need You', 'Miracle', 'Such a Fool']
         const index = parseInt(Math.random() * 6)
-        return `https://lengyuexin.github.io/enote-song/music/${musicList[index]}.m4a`
+        return ` http://lengyuexin-enote.gitee.io/song/music/${musicList[index]}.m4a`
     }
 
 
@@ -150,9 +150,9 @@ class MyHeader extends React.Component {
                         dom.play();
                     })
 
-                }}>更换音乐</Button>
+                }}>change</Button>
 
-                <Button style={{marginLeft:"16px"}} onClick={() => {
+                <Button style={{ marginLeft: "16px" }} onClick={() => {
 
                     const dom = document.getElementById("enote-admin-play")
                     if (dom.paused) {
@@ -161,7 +161,11 @@ class MyHeader extends React.Component {
                         dom.pause();
                     }
 
-                }}>暂停/播放</Button>
+                }}>on/off</Button>
+
+                <Button type="link" style={{ marginLeft: "16px" }}>
+                    <a href={this.state.url} download={this.state.url.split("/").pop()}>download-music</a>
+                </Button>
 
                 <audio id='enote-admin-play' autoPlay loop src={this.state.url} />
 

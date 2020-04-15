@@ -14,8 +14,10 @@ const { TOKEN_SECRETKEY } = require('../config/secret')
  * @param {*} phone 
  */
 const register = async function (name, password, phone, level = 'admin') {
+
+
     const sql = `insert into users (name, password,phone,level) values
-     ('${name}', '${password}','${phone}', '${level}')`
+     ('${name}', '${password}','${phone}', '${level}')`;
     const res = await exec(sql);
     const jsonData = JSON.parse(JSON.stringify(res))
     return !!jsonData.affectedRows

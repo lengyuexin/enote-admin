@@ -177,8 +177,20 @@ class Article extends PureComponent {
         hide()
 
         if (res.data) {
-            message.success('审核成功');
-            this.getArticles();//审核后重新加载数据
+
+            try {
+                message.success('审核通过');
+                this.getArticles();//审核后重新加载数据
+                //发布到enote
+                const url = `${process.env.REACT_APP_BASE_URL}/article/syncHome`;
+                await json.post(url, { record })
+            } catch (error) {
+                console.error(error)
+            }
+
+
+
+
         }
     }
     /**

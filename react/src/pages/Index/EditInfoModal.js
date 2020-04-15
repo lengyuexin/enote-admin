@@ -45,9 +45,12 @@ class EditInfoModal extends React.Component {
      */
     onUpdate = async (values) => {
 
+        const loginUserName=window.localStorage.getItem("name");
+        
+
         const avatarArr = values['admin-edit-avatar'].split("/");
-        const avatarName=avatarArr[avatarArr.length-1];
-        const avatarFolder=avatarArr[avatarArr.length-2];
+        const avatarName = avatarArr[avatarArr.length - 1];
+        const avatarFolder = avatarArr[avatarArr.length - 2];
 
         const res = await json.post('/user/updateAvatar',
 
@@ -58,11 +61,21 @@ class EditInfoModal extends React.Component {
 
         )
 
+        const res2 = await json.get( `/user/getUser?name=${loginUserName}`)
+
+        setUser(res2.data.data)
         
+
+
+
+
+
 
         if (res.data) {
             message.success("头像更新成功")
             this.handleCancel()
+            window.location.href="/"
+           
         }
 
 
