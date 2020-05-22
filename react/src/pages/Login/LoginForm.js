@@ -126,6 +126,7 @@ class LoginForm extends React.Component {
                                 onBlur={() => this.setState({ focusItem: -1 })}
                                 onPressEnter={this.onSubmit}
                                 placeholder="用户名"
+						autoComplete="off"
                             />
                         )}
                     </Form.Item>

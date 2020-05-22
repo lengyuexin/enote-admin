@@ -267,6 +267,7 @@ class Users extends PureComponent {
                                             onPressEnter={this.onSearch}
                                             style={{ width: 200 }}
                                             placeholder="用户名"
+											 autoComplete="off"
                                         />
                                     )}
                                 </Form.Item>
